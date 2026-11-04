@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Usuario {
+  id                Int      @id @default(autoincrement())
+  nome              String
+  email             String   @unique
+  senha             String
+  perfil            String   
+  consentimentoLGPD Boolean  @default(false)
+  pedidos           Pedido[]
+}
+
+model Unidade {
+  id       Int       @id @default(autoincrement())
+  nome     String
+  estoques Estoque[]
+  pedidos  Pedido[]
+}
+
+model Produto {
+  id       Int         @id @default(autoincrement())
+  nome     String
+  preco    Float
+  estoques Estoque[]
+  itens    ItemPedido[]
+}
+
+model Estoque {
+  id         Int     @id @default(autoincrement())
+  unidadeId  Int
+  produtoId  Int
+  quantidade Int
+  unidade    Unidade @relation(fields: [unidadeId], references: [id])
+  produto    Produto @relation(fields: [produtoId], references: [id])
+  @@unique([unidadeId, produtoId])
+}
+
+model Pedido {
+  id          Int         @id @default(autoincrement())
+  canalPedido String      
+  status      String      
+  valorTotal  Float
+  usuarioId   Int
+  unidadeId   Int
+  usuario     Usuario     @relation(fields: [usuarioId], references: [id])
+  unidade     Unidade     @relation(fields: [unidadeId], references: [id])
+  itens       ItemPedido[]
+  pagamento   Pagamento?
+}
+
+model ItemPedido {
+  id            Int     @id @default(autoincrement())
+  pedidoId      Int
+  produtoId     Int
+  quantidade    Int
+  precoUnitario Float
+  pedido        Pedido  @relation(fields: [pedidoId], references: [id])
+  produto       Produto @relation(fields: [produtoId], references: [id])
+}
+
+model Pagamento {
+  id       Int     @id @default(autoincrement())
+  pedidoId Int     @unique
+  status   String  
+  metodo   String  
+  pedido   Pedido  @relation(fields: [pedidoId], references: [id])
+}
